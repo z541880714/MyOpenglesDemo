@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.glesjavademo.config.MyConfigChooser
+import com.example.glesjavademo.render.AboParticleRender
 import com.example.glesjavademo.render.VboParticleRender
 import com.example.glesjavademo.ui.theme.GlesJavaDemoTheme
 
@@ -38,7 +39,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         it.setEGLContextClientVersion(3)
         //设置 EGL
         //  it.setEGLConfigChooser(MyConfigChooser())
-        val renderer = VboParticleRender()
+//        val renderer = VboParticleRender()
+        val renderer = AboParticleRender()
         it.setRenderer(renderer)
     })
 }

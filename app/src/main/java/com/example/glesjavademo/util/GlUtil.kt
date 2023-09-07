@@ -11,14 +11,14 @@ import java.nio.ByteBuffer
 
 data class ShaderProgramData(val programId: Int, val vShaderId: Int, val fShaderId: Int)
 
-fun glCreateProgramIdFromAssets(
+fun zglCreateProgramIdFromAssets(
     context: Context, vertPath: String, fragPath: String
 ): ShaderProgramData {
     val vertCode = context.assets.readAssetsFile(vertPath)
     val fragCode = context.assets.readAssetsFile(fragPath)
     val programId = glCreateProgram()
-    val vertShader = glLoadShader(GL_VERTEX_SHADER, vertCode)
-    val fragShader = glLoadShader(GL_FRAGMENT_SHADER, fragCode)
+    val vertShader = zglLoadShader(GL_VERTEX_SHADER, vertCode)
+    val fragShader = zglLoadShader(GL_FRAGMENT_SHADER, fragCode)
 
     glAttachShader(programId, vertShader)
     glAttachShader(programId, fragShader)
@@ -26,15 +26,7 @@ fun glCreateProgramIdFromAssets(
     return ShaderProgramData(programId, vertShader, fragShader)
 }
 
-fun glCreateProgramId(vert: String, frag: String): Int {
-    val programId = glCreateProgram()
-    glAttachShader(programId, glLoadShader(GL_VERTEX_SHADER, vert))
-    glAttachShader(programId, glLoadShader(GL_FRAGMENT_SHADER, frag))
-    glLinkProgram(programId)
-    return programId
-}
-
-fun glLoadShader(shaderType: Int, code: String): Int {
+fun zglLoadShader(shaderType: Int, code: String): Int {
     val shaderId = glCreateShader(shaderType)
     glShaderSource(shaderId, code)
     glCompileShader(shaderId)
@@ -42,26 +34,28 @@ fun glLoadShader(shaderType: Int, code: String): Int {
 }
 
 
-fun genTexture(bitmapStream: InputStream): Int {
+fun zglGenTexture(bitmapStream: InputStream): Int {
     val textures = IntArray(1)
     glGenTextures(1, textures, 0)
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, textures[0])
 
     val bitmap = BitmapFactory.decodeStream(bitmapStream)
     val buffer = ByteBuffer.allocate(bitmap.width * bitmap.height * 4)
     bitmap.copyPixelsToBuffer(buffer)
+    bitmap.recycle()
     buffer.position(0)
+    zglBindTexture(textures[0], buffer, bitmap.width, bitmap.height)
+    return textures[0]
+}
 
+fun zglBindTexture(textureId: Int, buffer: ByteBuffer?, width: Int, height: Int) {
+    glBindTexture(GL_TEXTURE_2D, textureId)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA, bitmap.width, bitmap.height, 0, GL_RGBA,
+        GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
         GL_UNSIGNED_BYTE, buffer
     )
-    bitmap.recycle()
-    return textures[0]
 }
 

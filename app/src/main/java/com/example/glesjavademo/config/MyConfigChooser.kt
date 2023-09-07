@@ -1,6 +1,7 @@
 package com.example.glesjavademo.config
 
 import android.opengl.GLES20
+import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.util.Log
 import javax.microedition.khronos.egl.EGL10
@@ -21,6 +22,13 @@ class MyConfigChooser : GLSurfaceView.EGLConfigChooser {
             EGL10.EGL_SAMPLES, 4,  // 在这里修改MSAA的倍数，4就是4xMSAA，再往上开程序可能会崩
             EGL10.EGL_NONE
         )
+
+        //获取默认的屏幕.
+        val display0 = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY)
+        if (display0 == EGL10.EGL_NO_DISPLAY) {
+            //表示没有 要展示的 屏幕 display
+            Log.i("log_zc", "MyConfigChooser-> chooseConfig: cannot open local window ")
+        }
 
         egl.eglChooseConfig(display, attribs, configs, 1, IntArray(1))
         Log.i("log_zc", "MyConfigChooser-> chooseConfig: is null?:${configs[0] == null}")

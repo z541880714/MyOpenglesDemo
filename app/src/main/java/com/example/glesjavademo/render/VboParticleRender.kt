@@ -4,7 +4,7 @@ import android.opengl.GLES30.*
 import android.opengl.GLSurfaceView
 import android.util.Log
 import com.example.glesjavademo.appContext
-import com.example.glesjavademo.util.glCreateProgramIdFromAssets
+import com.example.glesjavademo.util.zglCreateProgramIdFromAssets
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.microedition.khronos.egl.EGLConfig
@@ -26,7 +26,7 @@ class VboParticleRender : GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
         val programData =
-            glCreateProgramIdFromAssets(appContext, "shader/points.vert", "shader/points.frag")
+            zglCreateProgramIdFromAssets(appContext, "shader/points.vert", "shader/points.frag")
         Log.i("log_zc", "ParticleRender-> onSurfaceCreated: program: $programData")
         val programId = programData.programId
         glUseProgram(programId)

@@ -16,6 +16,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.glesjavademo.config.MyConfigChooser
 import com.example.glesjavademo.render.AboParticleRender
 import com.example.glesjavademo.render.FboMultiRenderTarget
+import com.example.glesjavademo.render.TextureRender
 import com.example.glesjavademo.render.VboParticleRender
 import com.example.glesjavademo.render.VboTextureRender
 import com.example.glesjavademo.ui.theme.GlesJavaDemoTheme
@@ -48,7 +49,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         //    val renderer = VboParticleRender()
         //    val renderer = AboParticleRender()
         //    val renderer = VboTextureRender()
-        val renderer = FboMultiRenderTarget()
+//        val renderer = FboMultiRenderTarget()
+        val renderer = TextureRender()
         it.setRenderer(renderer)
     }, modifier = Modifier.onSizeChanged {
         Log.i("log_zc", "MainActivity-> Greeting: size:$it")

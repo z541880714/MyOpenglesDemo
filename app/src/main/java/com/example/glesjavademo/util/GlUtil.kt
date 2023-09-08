@@ -34,7 +34,7 @@ fun zglLoadShader(shaderType: Int, code: String): Int {
 }
 
 
-fun zglGenTexture(bitmapStream: InputStream): Int {
+fun zglGenAndBindTexture(bitmapStream: InputStream): Int {
     val textures = IntArray(1)
     glGenTextures(1, textures, 0)
 

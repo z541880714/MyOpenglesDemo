@@ -11,9 +11,9 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.random.Random
 
-class VboParticleRender : GLSurfaceView.Renderer {
+class VboParticleRender() : GLSurfaceView.Renderer {
 
-    private val pointsCount = 10000;
+    private val pointsCount = 1;
     private var sw: Int = 0
     private var sh: Int = 0
     val pointsBuffer =
@@ -23,13 +23,25 @@ class VboParticleRender : GLSurfaceView.Renderer {
     private val buffers = IntArray(1)
     private val vboId get() = buffers[0]
 
+    private var vertPath: String = "shader/points.vert"
+    private var fragPath: String = "shader/points.frag"
+
+    constructor(
+        vertPath: String = "shader/points.vert",
+        fragPath: String = "shader/points.frag"
+    ) : this() {
+        this.vertPath = vertPath
+        this.fragPath = fragPath
+    }
+
+    private var programId = 0
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
         val programData =
             zglCreateProgramIdFromAssets(appContext, "shader/points.vert", "shader/points.frag")
         Log.i("log_zc", "ParticleRender-> onSurfaceCreated: program: $programData")
-        val programId = programData.programId
-        glUseProgram(programId)
+        programId = programData.programId
 
         glGenBuffers(buffers.size, buffers, 0)
 
@@ -48,9 +60,9 @@ class VboParticleRender : GLSurfaceView.Renderer {
 
 
     override fun onDrawFrame(gl: GL10?) {
+        glUseProgram(programId)
+
 //        glClearColor(0f, 0f, 0f, 1f)
-        glClear(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND);
         frameCounter()
 
         updatePoints()

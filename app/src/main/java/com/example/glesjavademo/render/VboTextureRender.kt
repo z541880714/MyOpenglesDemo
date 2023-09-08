@@ -3,7 +3,7 @@ package com.example.glesjavademo.render
 import android.opengl.GLES30.*
 import android.opengl.GLSurfaceView
 import com.example.glesjavademo.appContext
-import com.example.glesjavademo.util.zglGenTexture
+import com.example.glesjavademo.util.zglGenAndBindTexture
 import com.example.glesjavademo.util.zglCreateProgramIdFromAssets
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -68,15 +68,11 @@ class VboTextureRender : GLSurfaceView.Renderer {
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER, indexDataBuffer.capacity() * 4, indexDataBuffer, GL_STATIC_DRAW
         )
-
         imageTexture = appContext.assets.open("images/image_2.jpg").use {
-            zglGenTexture(it)
+            zglGenAndBindTexture(it)
         }
         glActiveTexture(GL_TEXTURE0)
-
-        // 启动对应位置的参数，这里直接使用LOCATION_UNIFORM_TEXTURE，而无需像OpenGL 2.0那样需要先获取参数的location
-        // Enable the parameter of the location. Here we can simply use LOCATION_UNIFORM_TEXTURE, while in OpenGL 2.0 we have to query the location of the parameter
-        glUniform1i(0, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
     }
 
     var glSurfaceViewWidth = 0
@@ -103,9 +99,6 @@ class VboTextureRender : GLSurfaceView.Renderer {
         // Set the status before rendering
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, imageTexture)
-
 
         // 调用glDrawElements方法用TRIANGLES的方式执行渲染
         // Call the glDrawElements method with GL_TRIANGLES

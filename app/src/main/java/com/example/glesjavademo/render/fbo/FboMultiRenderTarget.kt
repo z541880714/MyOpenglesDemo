@@ -1,6 +1,5 @@
-package com.example.glesjavademo.render
+package com.example.glesjavademo.render.fbo
 
-import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLES30.GL_COLOR_ATTACHMENT0
 import android.opengl.GLES30.GL_COLOR_ATTACHMENT1
@@ -34,7 +33,6 @@ import android.util.Log
 import com.example.glesjavademo.appContext
 import com.example.glesjavademo.util.zglBindTexture
 import com.example.glesjavademo.util.zglCreateProgramIdFromAssets
-import com.example.glesjavademo.util.zglGenTexture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
@@ -106,14 +104,12 @@ class FboMultiRenderTarget : GLSurfaceView.Renderer {
 
         drawGeometry()
 
-//        drawTexture()
-
-        // 位块传输 , 准备从 帧缓存 传入 系统窗口的 surface 中.
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         blitTextures();
     }
 
     private fun blitTextures() {
+        // 位块传输 , 准备从 帧缓存 传入 系统窗口的 surface 中.
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         //从 fboId 中读取, 写入 窗口..
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId)
 
@@ -179,52 +175,5 @@ class FboMultiRenderTarget : GLSurfaceView.Renderer {
         //绑定 附着点.. 让 片段着色器 输出 到对应的附着点...
         glDrawBuffers(4, attachment, 0)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, iBuffer)
-
-    }
-
-
-    private val vertexData = floatArrayOf(
-        -1f, -1f, 0f, 1f,    // x, y , u, v  顶点坐标 和纹理坐标 一起...
-        -1f, 1f, 0f, 0f,
-        1f, 1f, 1f, 0f,
-        1f, -1f, 1f, 1f,
-    )
-
-    private val indexData = intArrayOf(0, 1, 2, 0, 2, 3)
-
-    private val vertexBuffer = ByteBuffer.allocateDirect(vertexData.size * 4)
-        .order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
-            put(vertexData)
-            position(0)
-        }
-
-    val indexDataBuffer = ByteBuffer.allocateDirect(indexData.size * 4)
-        .order(ByteOrder.nativeOrder()).asIntBuffer().apply {
-            put(indexData)
-            position(0)
-        }
-
-    private var imageTexture = 0
-
-
-    private fun drawTexture() {
-        glViewport(0, 0, this.width, this.height)
-        glClear(GL_COLOR_BUFFER_BIT)
-        glUseProgram(projectId)
-
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, 16, vertexBuffer)
-        glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 16, 0)
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 16, 8)
-
-        imageTexture = appContext.assets.open("images/image_2.jpg").use {
-            zglGenTexture(it)
-        }
-        glActiveTexture(GL_TEXTURE0)
-
-        //绑定 附着点.. 让 片段着色器 输出 到对应的附着点...
-        glDrawBuffers(4, attachment, 0)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indexDataBuffer)
     }
 }

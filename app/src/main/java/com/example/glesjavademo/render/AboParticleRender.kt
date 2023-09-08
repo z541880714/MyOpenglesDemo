@@ -10,6 +10,7 @@ import java.nio.ByteOrder
 import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
 /**
@@ -17,14 +18,13 @@ import kotlin.system.measureTimeMillis
  */
 class AboParticleRender : GLSurfaceView.Renderer {
 
-    private val pointsCount = 20000;
+    private val pointsCount = 100;
     private val pointsPerLine = 20
     private val lineCount = pointsCount / pointsPerLine
     private var sw: Int = 0
     private var sh: Int = 0
     val pointsBuffer =
         ByteBuffer.allocateDirect(pointsCount * 6 * 4).order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
 
     private val buffers = IntArray(1)
     private val vboId get() = buffers[0]
@@ -32,18 +32,18 @@ class AboParticleRender : GLSurfaceView.Renderer {
     private val aboBuffer = IntBuffer.allocate(1)
     private val aboId: Int get() = aboBuffer[0]
 
+    private var programId = 0
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
         val programData =
             zglCreateProgramIdFromAssets(appContext, "shader/points.vert", "shader/points.frag")
         Log.i("log_zc", "ParticleRender-> onSurfaceCreated: program: $programData")
-        val programId = programData.programId
-        glUseProgram(programId)
+        programId = programData.programId
 
         glGenBuffers(buffers.size, buffers, 0)
 
         glBindBuffer(GL_ARRAY_BUFFER, vboId)
-        glBufferData(GL_ARRAY_BUFFER, pointsBuffer.limit() * 4, null, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, pointsBuffer.limit(), null, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         glGenVertexArrays(1, aboBuffer)
@@ -54,8 +54,8 @@ class AboParticleRender : GLSurfaceView.Renderer {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, (2 + 4) * 4, 0);
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, (2 + 4) * 4, 2 * 4);
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4 + 4, 0)
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, 2 * 4 + 4, 2 * 4)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -73,9 +73,8 @@ class AboParticleRender : GLSurfaceView.Renderer {
 
 
     override fun onDrawFrame(gl: GL10?) {
-//        glClearColor(0f, 0f, 0f, 1f)
-        glClear(GL_COLOR_BUFFER_BIT)
-        glEnable(GL_BLEND);
+
+        glUseProgram(programId)
 
         val t1 = measureTimeMillis {
             updatePoints()
@@ -85,10 +84,10 @@ class AboParticleRender : GLSurfaceView.Renderer {
         val t2 = measureTimeMillis {
             glBindVertexArray(aboId)
             glBindBuffer(GL_ARRAY_BUFFER, vboId)
-            glBufferSubData(GL_ARRAY_BUFFER, 0, pointsBuffer.limit() * 4, pointsBuffer)
+            glBufferSubData(GL_ARRAY_BUFFER, 0, pointsBuffer.limit(), pointsBuffer)
 
             repeat(lineCount) {
-                glDrawArrays(GL_LINE_STRIP, it * pointsPerLine, pointsPerLine)
+                glDrawArrays(GL_POINTS, it * pointsPerLine, pointsPerLine)
             }
 
             glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -117,20 +116,23 @@ class AboParticleRender : GLSurfaceView.Renderer {
         }
     }
 
-
+    private var frameIndex = 0L
     private fun updatePoints() {
         pointsBuffer.position(0)
 
         for (i in 0 until lineCount) {
             for (j in 0 until pointsPerLine) {
-                val x = j / (pointsPerLine - 1).toFloat() * 2 - 1
-                val y = i / lineCount.toFloat() * 2 - 1
-                val r = y
-                val g = x
-                val b = 1f
-                val a = 1f
-                pointsBuffer.put(x)
-                pointsBuffer.put(y)
+                //random 比较 耗时. . 性能 优化时 需要注意...
+                val x = Random.nextDouble().toFloat() * 2 - 1
+                val y = Random.nextDouble().toFloat() * 2 - 1
+
+
+                val r = ((y + 1) / 2 * 255).toInt().toByte()
+                val g = ((x + 1) / 2 * 255).toInt().toByte()
+                val b = (1f * 255).toInt().toByte()
+                val a = (1f * 255).toInt().toByte()
+                pointsBuffer.putFloat(x)
+                pointsBuffer.putFloat(y)
                 pointsBuffer.put(r)
                 pointsBuffer.put(g)
                 pointsBuffer.put(b)

@@ -17,7 +17,6 @@ import com.example.glesjavademo.render.*
 import com.example.glesjavademo.render.fbo.FboMultiRenderTarget
 import com.example.glesjavademo.render.fbo.FboMultiRenderTexture
 import com.example.glesjavademo.render.fbo.FboParticle
-import com.example.glesjavademo.render.transformfeedback.ParticleTransformFeedback
 import com.example.glesjavademo.render.transformfeedback.TransformFeedbackSample
 import com.example.glesjavademo.ui.theme.GlesJavaDemoTheme
 
@@ -65,7 +64,7 @@ fun createRenderer(index: Int): GLSurfaceView.Renderer {
         5 -> FboMultiRenderTexture()
         6 -> FboParticle()
         7 -> LinesRender()
-        8 -> ParticleTransformFeedback()
+        8 -> UniformBlockRender()
         9 -> RectRender()
         10 -> TransformFeedbackSample()
         else -> VboTextureRender()

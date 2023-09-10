@@ -49,6 +49,7 @@ import com.example.glesjavademo.appContext
 import com.example.glesjavademo.util.FrameCounter
 import com.example.glesjavademo.util.toFloatBuffer
 import com.example.glesjavademo.util.zglCreateProgramFromCodeStr
+import com.example.glesjavademo.util.zglCreateProgramIdFromAssets
 import com.example.glesjavademo.util.zglGenAndBindTexture
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -73,7 +74,7 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
         }
 
     //emit vert shader 中的 feedback 参数.
-    val feedbackVaryingArray = arrayOf(
+    private val feedbackVaryingArray = arrayOf(
         "v_position",
         "v_velocity",
         "v_size",
@@ -91,14 +92,16 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
 
     private var time = 0f
     private var startTime = 0L
-    private var curSrcIndex = 0
 
     private val vboIds = IntArray(2)
 
 
     private fun initEmitParticles() {
-        emitProgramId =
-            zglCreateProgramFromCodeStr(appContext, emitVertCode, emitShaderCode).programId
+        emitProgramId = zglCreateProgramIdFromAssets(
+            appContext,
+            "shader/particle/particleEmit.vert",
+            "shader/particle/particleEmit.frag",
+        ).programId
         glTransformFeedbackVaryings(emitProgramId, feedbackVaryingArray, GL_INTERLEAVED_ATTRIBS)
         glLinkProgram(emitProgramId)
 
@@ -107,8 +110,12 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
 
     private fun init() {
         initEmitParticles()
-        drawProgramId =
-            zglCreateProgramFromCodeStr(appContext, drawVertCode, drawFragCode).programId
+
+        drawProgramId = zglCreateProgramIdFromAssets(
+            appContext,
+            "shader/particle/particleDraw.vert",
+            "shader/particle/particleDraw.frag"
+        ).programId
 
         glGenBuffers(2, vboIds, 0)
         repeat(2) {
@@ -150,7 +157,7 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
     }
 
 
-    fun draw() {
+    private fun draw() {
         // 等待之前的命令 执行结束.
         glWaitSync(emitSync, 0, GL_TIMEOUT_IGNORED)
         // 删除同步.. 下次再创建..
@@ -171,7 +178,7 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
     }
 
 
-    fun setupVertexAttributes(vboId: Int) {
+    private fun setupVertexAttributes(vboId: Int) {
         glBindBuffer(GL_ARRAY_BUFFER, vboId)
         GLES20.glVertexAttribPointer(0, 2, GL_FLOAT, false, Particle.stride, 0)
         GLES20.glVertexAttribPointer(1, 2, GL_FLOAT, false, Particle.stride, 2 * 4)
@@ -186,8 +193,8 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
-    var frameIndex = 0
-    fun emitParticles(deltaTime: Float) {
+    private var frameIndex = 0
+    private fun emitParticles(deltaTime: Float) {
         val srcVboId = vboIds[frameIndex]   //顶点 缓冲区
         val dstVboId = vboIds[(frameIndex + 1) % 2]  // feedback 缓冲区
 
@@ -220,85 +227,6 @@ class TransformFeedbackSample : GLSurfaceView.Renderer {
         frameIndex = (frameIndex + 1) % 2  // 下一帧 两个 帧缓冲区 进行输出 输入 交换.
     }
 
-
-    val emitVertCode = "#version 300 es                                              \n" +
-            "#define ATTRIBUTE_POSITION      0                                   \n" +
-            "#define ATTRIBUTE_VELOCITY      1                                   \n" +
-            "#define ATTRIBUTE_SIZE          2                                   \n" +
-            "#define ATTRIBUTE_CURTIME       3                                   \n" +
-            "#define ATTRIBUTE_LIFETIME      4                                   \n" +
-            "uniform float u_time;                                               \n" +
-            "                                                                    \n" +
-            "layout(location = ATTRIBUTE_POSITION) in vec2 a_position;           \n" +
-            "layout(location = ATTRIBUTE_VELOCITY) in vec2 a_velocity;           \n" +
-            "layout(location = ATTRIBUTE_SIZE) in float a_size;                  \n" +
-            "layout(location = ATTRIBUTE_CURTIME) in float a_curtime;            \n" +
-            "layout(location = ATTRIBUTE_LIFETIME) in float a_lifetime;          \n" +
-            "                                                                    \n" +
-            "out vec2 v_position;                                                \n" +
-            "out vec2 v_velocity;                                                \n" +
-            "out float v_size;                                                   \n" +
-            "out float v_curtime;                                                \n" +
-            "out float v_lifetime;                                               \n" +
-            "                                                                    \n" +
-            "void main()                                                         \n" +
-            "{                                                                   \n" +
-            "  float seed = u_time;                                              \n" +
-            "  float lifetime = a_curtime + a_lifetime - u_time;                \n" +
-            "  if( lifetime <= 0.0 )                                            \n" +
-            "  {                                                                 \n" +
-            "     v_position = vec2( 0.0, -0.9 );                                \n" +
-            "     v_velocity = a_velocity;                                  \n" +
-            "     v_size = 20.;                                                  \n" +
-            "     v_curtime = u_time;                                            \n" +
-            "     v_lifetime = 5000.0;                                              \n" +
-            "  }                                                                 \n" +
-            "  else                                                              \n" +
-            "  {                                                                 \n" +
-            "     v_position = a_position + a_velocity * 0.1;                       \n" +
-            "     v_velocity = a_velocity ;                                     \n" +
-            "     v_size = a_size;                                               \n" +
-            "     v_curtime = a_curtime;                                         \n" +
-            "     v_lifetime = a_lifetime;                                       \n" +
-            "  }                                                                 \n" +
-            "  gl_Position = vec4( v_position, 0.0, 1.0 );                       \n" +
-            "}                                                                   \n";
-
-
-    val emitShaderCode = "#version 300 es                                      \n" +
-            "precision mediump float;                             \n" +
-            "layout(location = 0) out vec4 fragColor;             \n" +
-            "void main()                                          \n" +
-            "{                                                    \n" +
-            "  fragColor = vec4(1.0);                             \n" +
-            "}                                                    \n"
-
-
-    private val drawVertCode = "#version 300 es                                  \n" +
-            "#define ATTRIBUTE_POSITION      0                                   \n" +
-            "#define ATTRIBUTE_VELOCITY      1                                   \n" +
-            "#define ATTRIBUTE_SIZE          2                                   \n" +
-            "#define ATTRIBUTE_CURTIME       3                                   \n" +
-            "#define ATTRIBUTE_LIFETIME      4                                   \n" +
-            "                                                                    \n" +
-            "layout(location = ATTRIBUTE_POSITION) in vec2 a_position;           \n" +
-            "layout(location = ATTRIBUTE_VELOCITY) in vec2 a_velocity;           \n" +
-            "layout(location = ATTRIBUTE_SIZE) in float a_size;                  \n" +
-            "layout(location = ATTRIBUTE_CURTIME) in float a_curtime;            \n" +
-            "layout(location = ATTRIBUTE_LIFETIME) in float a_lifetime;          \n" +
-            "                                                                    \n" +
-            "void main()                                                         \n" +
-            "{                                                                   \n" +
-            "  gl_PointSize = 3. ;                                          \n" +
-            "  gl_Position = vec4(a_position, 0.0, 1.0 );                         \n" +
-            "}"
-    private val drawFragCode = "#version 300 es                   \n" +
-            "precision mediump float;                             \n" +
-            "layout(location = 0) out vec4 fragColor;             \n" +
-            "void main()                                          \n" +
-            "{                                                    \n" +
-            "  fragColor = vec4(0.8,0.1,0.5,1.0);                               \n" +
-            "}                                                    \n"
 }
 
 private data class Particle(
@@ -317,7 +245,4 @@ private data class Particle(
             }
     }
 
-    fun getFloatArray() = floatArrayOf(
-        position.x, position.y, velocity.x, velocity.y, curtime, lifetime
-    )
 }

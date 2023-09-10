@@ -1,4 +1,4 @@
-package com.example.glesjavademo.render.transformfeedback
+package com.example.glesjavademo.render
 
 import android.opengl.GLES20
 import android.opengl.GLES30.*
@@ -7,7 +7,6 @@ import android.util.Log
 import com.example.glesjavademo.appContext
 import com.example.glesjavademo.util.toFloatBuffer
 import com.example.glesjavademo.util.zglCreateProgramIdFromAssets
-import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.random.Random
@@ -15,7 +14,7 @@ import kotlin.random.Random
 /**
  * 使用 gles 3.0 特性 变换反馈 渲染粒子系统
  */
-class ParticleTransformFeedback : GLSurfaceView.Renderer {
+class UniformBlockRender : GLSurfaceView.Renderer {
 
     private val feedbackObjIds = IntArray(1)
     private val feedbackBufferIds = IntArray(2)
@@ -48,8 +47,8 @@ class ParticleTransformFeedback : GLSurfaceView.Renderer {
         //使用 feedback 特性.生成 programId
         val programData = zglCreateProgramIdFromAssets(
             appContext,
-            "shader/particle/particle.vert",
-            "shader/particle/particle.frag",
+            "shader/uniformBlock.vert",
+            "shader/uniformBlock.frag",
         )
         // 设置 变换反馈 后, 必须要 调用 glLinkProgram
         glTransformFeedbackVaryings(programId, feedbackVarArray, GL_INTERLEAVED_ATTRIBS)
@@ -132,7 +131,6 @@ class ParticleTransformFeedback : GLSurfaceView.Renderer {
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindVertexArray(0)
-
     }
 
 

@@ -12,6 +12,10 @@ import java.nio.ShortBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
+
+/**
+ * 用来 进行 源缓冲区  进行 颜色混合.. 达到 alpha 主帧较少的效果
+ */
 class RectRender() : GLSurfaceView.Renderer {
 
 
@@ -78,6 +82,9 @@ class RectRender() : GLSurfaceView.Renderer {
 
     override fun onDrawFrame(gl: GL10?) {
         glUseProgram(programId)
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // 清屏
         // Clear the screen

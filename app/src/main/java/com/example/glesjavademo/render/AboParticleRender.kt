@@ -116,7 +116,6 @@ class AboParticleRender : GLSurfaceView.Renderer {
         }
     }
 
-    private var frameIndex = 0L
     private fun updatePoints() {
         pointsBuffer.position(0)
 

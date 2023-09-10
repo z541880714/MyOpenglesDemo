@@ -98,15 +98,12 @@ class FboParticle : GLSurfaceView.Renderer {
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
         glDrawBuffers(1, attachments, 0)
 
-        GLES20.glEnable(GL_BLEND)
 
-
-        GLES10.glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
         val t1 = measureTimeMillis {
             linesRender.onDrawFrame(gl)
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         val t2 = measureTimeMillis {
             rectRender.onDrawFrame(gl)
         }

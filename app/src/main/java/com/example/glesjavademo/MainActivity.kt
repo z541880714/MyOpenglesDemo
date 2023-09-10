@@ -3,7 +3,6 @@ package com.example.glesjavademo
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +17,8 @@ import com.example.glesjavademo.render.*
 import com.example.glesjavademo.render.fbo.FboMultiRenderTarget
 import com.example.glesjavademo.render.fbo.FboMultiRenderTexture
 import com.example.glesjavademo.render.fbo.FboParticle
+import com.example.glesjavademo.render.transformfeedback.ParticleTransformFeedback
+import com.example.glesjavademo.render.transformfeedback.TransformFeedbackSample
 import com.example.glesjavademo.ui.theme.GlesJavaDemoTheme
 
 
@@ -47,7 +48,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         it.setEGLContextClientVersion(2)
         //  it.setEGLConfigChooser(MyConfigChooser())
 
-        it.setRenderer(createRenderer(6))
+        it.setRenderer(createRenderer(10))
     }, modifier = Modifier.onSizeChanged {
         Log.i("log_zc", "MainActivity-> Greeting: size:$it")
     })
@@ -63,6 +64,10 @@ fun createRenderer(index: Int): GLSurfaceView.Renderer {
         4 -> FboMultiRenderTarget()
         5 -> FboMultiRenderTexture()
         6 -> FboParticle()
+        7 -> LinesRender()
+        8 -> ParticleTransformFeedback()
+        9 -> RectRender()
+        10 -> TransformFeedbackSample()
         else -> VboTextureRender()
     }
 }

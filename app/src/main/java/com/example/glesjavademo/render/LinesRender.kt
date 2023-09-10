@@ -1,6 +1,7 @@
 package com.example.glesjavademo.render
 
 import android.graphics.PointF
+import android.opengl.GLES10
 import android.opengl.GLES10.GL_ONE
 import android.opengl.GLES10.glBlendFunc
 import android.opengl.GLES20
@@ -22,7 +23,7 @@ class LinesRender() : GLSurfaceView.Renderer {
 
     //两个点 画一条线...
     private val pointsCount = 2
-    private val lineCount = 10000
+    private val lineCount = 20000
     private var sw: Int = 0
     private var sh: Int = 0
 
@@ -83,6 +84,9 @@ class LinesRender() : GLSurfaceView.Renderer {
 
         GLES30.glUseProgram(programId)
 
+        GLES20.glEnable(GLES30.GL_BLEND)
+        GLES10.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_DST_ALPHA);
+
         val t1 = measureTimeMillis {
             updatePoints()
         }
@@ -95,7 +99,7 @@ class LinesRender() : GLSurfaceView.Renderer {
         }
 
         val t3 = measureTimeMillis {
-            GLES30.glDrawArrays(GLES30.GL_LINES, 0, lineCount)
+            GLES30.glDrawArrays(GLES30.GL_LINES, 0, lineCount * pointsCount)
         }
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)

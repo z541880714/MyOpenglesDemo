@@ -4,7 +4,9 @@ package com.example.glesjavademo.util
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.opengl.GLES20
 import android.opengl.GLES30.*
+import android.util.Log
 import java.io.InputStream
 import java.nio.ByteBuffer
 
@@ -16,17 +18,33 @@ fun zglCreateProgramIdFromAssets(
 ): ShaderProgramData {
     val vertCode = context.assets.readAssetsFile(vertPath)
     val fragCode = context.assets.readAssetsFile(fragPath)
+    return zglCreateProgramFromCodeStr(context, vertCode, fragCode)
+}
+
+fun zglCreateProgramFromCodeStr(
+    context: Context,
+    vertCodeStr: String,
+    fragCodeStr: String
+): ShaderProgramData {
+
     val programId = glCreateProgram()
-    val vertShader = zglLoadShader(GL_VERTEX_SHADER, vertCode)
-    val fragShader = zglLoadShader(GL_FRAGMENT_SHADER, fragCode)
+    val vertShader = zglLoadShader(GL_VERTEX_SHADER, vertCodeStr)
+    val fragShader = zglLoadShader(GL_FRAGMENT_SHADER, fragCodeStr)
 
     glAttachShader(programId, vertShader)
     glAttachShader(programId, fragShader)
     glLinkProgram(programId)
+    //检查 shader 编译结果...
+    val successArray = IntArray(1)
+    GLES20.glGetProgramiv(programId, GL_LINK_STATUS, successArray, 0)
+    if (successArray[0] == 0) {
+        val logInf = glGetProgramInfoLog(programId)
+        Log.i("log_zc", "GlUtil-> zglCreateProgramIdFromAssets: logInfo:$logInf")
+    }
     return ShaderProgramData(programId, vertShader, fragShader)
 }
 
-fun zglLoadShader(shaderType: Int, code: String): Int {
+private fun zglLoadShader(shaderType: Int, code: String): Int {
     val shaderId = glCreateShader(shaderType)
     glShaderSource(shaderId, code)
     glCompileShader(shaderId)
@@ -46,6 +64,7 @@ fun zglGenAndBindTexture(bitmapStream: InputStream): Int {
     zglBindTexture(textures[0], buffer, bitmap.width, bitmap.height)
     return textures[0]
 }
+
 
 fun zglBindTexture(textureId: Int, buffer: ByteBuffer?, width: Int, height: Int) {
     glBindTexture(GL_TEXTURE_2D, textureId)

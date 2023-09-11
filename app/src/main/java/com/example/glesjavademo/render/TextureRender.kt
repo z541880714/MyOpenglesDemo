@@ -14,6 +14,8 @@ import javax.microedition.khronos.opengles.GL10
 
 class TextureRender() : GLSurfaceView.Renderer {
 
+    private var sWidth = 0
+    private var sHeight = 0
 
     private val POSITION_VERTEX = floatArrayOf(
         1f, 1f,
@@ -52,43 +54,48 @@ class TextureRender() : GLSurfaceView.Renderer {
 
     private var fragShaderPath = "shader/vbo.frag"
 
+    private var programId = 0
 
     constructor(
         vertPath: String = "shader/vbo.vert",
-        fragPath: String = "shader/vbo.frag"
+        fragPath: String = "shader/vbo.frag",
+        textureId: Int = 0,
     ) : this() {
         this.vertShaderPath = vertPath
         this.fragShaderPath = fragPath
+        this.textureId = textureId
     }
 
+    /**
+     * 外部 设置的 textureId
+     */
+    fun setTextureId(textureId: Int) {
+        this.textureId = textureId
+    }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        val programId =
+        programId =
             zglCreateProgramIdFromAssets(appContext, vertShaderPath, fragShaderPath).programId
-        // 应用GL程序
-        // Use the GL program
-        glUseProgram(programId)
-
-        textureId = appContext.assets.open("images/image_2.jpg").use {
-            zglGenAndBindTexture(it)
-        }
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        glViewport(0, 0, width, height)
+        this.sWidth = width
+        this.sHeight = height
+        glViewport(0, 0, sWidth, sHeight)
     }
 
     override fun onDrawFrame(gl: GL10?) {
+        glUseProgram(programId)
         // 清屏
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT)
-
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(0, 2, GL_FLOAT, false, 8, vertexBuffer)
         glVertexAttribPointer(1, 2, GL_FLOAT, false, 8, mTexVertexBuffer)
 
 
+        if (textureId == 0) initTexture()
         glActiveTexture(GL_TEXTURE0)
         //绑定纹理
         //绑定纹理
@@ -96,5 +103,12 @@ class TextureRender() : GLSurfaceView.Renderer {
 
         // 绘制
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mVertexIndexBuffer)
+    }
+
+    private fun initTexture() {
+        if (this.textureId > 0) return
+        textureId = appContext.assets.open("images/image_2.jpg").use {
+            zglGenAndBindTexture(it)
+        }
     }
 }

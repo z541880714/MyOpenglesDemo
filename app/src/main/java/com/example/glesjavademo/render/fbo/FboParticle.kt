@@ -1,6 +1,5 @@
 package com.example.glesjavademo.render.fbo
 
-import android.opengl.GLES10
 import android.opengl.GLES20
 import android.opengl.GLES20.GL_COLOR_ATTACHMENT0
 import android.opengl.GLES30
@@ -10,9 +9,7 @@ import android.opengl.GLES30.GL_DRAW_FRAMEBUFFER
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.GL_FRAMEBUFFER_BINDING
 import android.opengl.GLES30.GL_LINEAR
-import android.opengl.GLES30.GL_ONE_MINUS_SRC_ALPHA
 import android.opengl.GLES30.GL_READ_FRAMEBUFFER
-import android.opengl.GLES30.GL_SRC_ALPHA
 import android.opengl.GLES30.GL_TEXTURE_2D
 import android.opengl.GLES30.glBindFramebuffer
 import android.opengl.GLES30.glBlitFramebuffer
@@ -27,7 +24,7 @@ import android.opengl.GLSurfaceView
 import android.util.Log
 import com.example.glesjavademo.render.LinesRender
 import com.example.glesjavademo.render.RectRender
-import com.example.glesjavademo.util.FrameCounter
+import com.example.glesjavademo.render.TextureRender
 import com.example.glesjavademo.util.zglBindTexture
 import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
@@ -40,14 +37,13 @@ class FboParticle : GLSurfaceView.Renderer {
 
     val linesRender = LinesRender()
     val rectRender = RectRender()
+    val textureRender = TextureRender()
 
     val fboBuffers = IntArray(1)
     val textureIds = IntArray(1)
     val attachments = intArrayOf(
         GL_COLOR_ATTACHMENT0
     )
-
-    private val frameCounter = FrameCounter()
 
 
     val fboId get() = fboBuffers[0]
@@ -82,40 +78,37 @@ class FboParticle : GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         linesRender.onSurfaceCreated(gl, config)
         rectRender.onSurfaceCreated(gl, config)
-
+        textureRender.onSurfaceCreated(gl, config)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         sw = width; sh = height
         linesRender.onSurfaceChanged(gl, width, height)
         rectRender.onSurfaceChanged(gl, width, height)
+        textureRender.onSurfaceChanged(gl, width, height)
     }
 
     override fun onDrawFrame(gl: GL10?) {
         if (fboId == 0) {
             initFbo(sw, sh)
+            textureRender.setTextureId(textureIds[0])
         }
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
+        //渲染到 附着点上.. 附着点目前为纹理,
         glDrawBuffers(1, attachments, 0)
+        linesRender.onDrawFrame(gl)
+        rectRender.onDrawFrame(gl)
 
-
-        val t1 = measureTimeMillis {
-            linesRender.onDrawFrame(gl)
-        }
-
-
-        val t2 = measureTimeMillis {
-            rectRender.onDrawFrame(gl)
-        }
-
-        val t3 = measureTimeMillis {
-            blitTexture()
-        }
-
-//        frameCounter.compute(t1, t2, t3)
-
+        // 将附着点上的 数据渲染到界面,  两种方式
+        // 1: 块位复制, 直接复制到 窗口帧缓存, 无法做出修改
+        // 2: 使用纹理Id, 继续渲染到 系统窗口, 可以进行 二次修改..
+//        blitTexture()
+        renderToScreen()
     }
 
+    /**
+     * 将 fbo 帧缓存的数据, 复制到 系统窗口 的帧缓冲 ,可以直接显示..
+     */
     private fun blitTexture() {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId)
@@ -126,5 +119,11 @@ class FboParticle : GLSurfaceView.Renderer {
             0, 0, sw, sh,
             GL_COLOR_BUFFER_BIT, GL_LINEAR
         )
+    }
+
+    private fun renderToScreen() {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        textureRender.setTextureId(textureIds[0])
+        textureRender.onDrawFrame(null)
     }
 }

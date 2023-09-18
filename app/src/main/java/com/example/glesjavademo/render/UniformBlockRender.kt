@@ -16,8 +16,6 @@ import kotlin.random.Random
  */
 class UniformBlockRender : GLSurfaceView.Renderer {
 
-    private val feedbackObjIds = IntArray(1)
-    private val feedbackBufferIds = IntArray(2)
     private val vaoIds = IntArray(1)
     private val vboIds = IntArray(2)
     private val uboIds = IntArray(1)
@@ -31,10 +29,8 @@ class UniformBlockRender : GLSurfaceView.Renderer {
     private val pointCount = 10
     private val uniformBlockName get() = "UniformBlock"
 
-    private val feedbackVarArray = arrayOf("speed", "lifeTime", "position")
-
-    //顶点数据...
-    val vertexBuffer = FloatArray(4).toFloatBuffer()
+    private val vertexCoord =
+        FloatArray(pointCount * 2) { Random.nextFloat() * 1000 }.toFloatBuffer()
 
     /**
      * uniform block  数据.
@@ -44,21 +40,14 @@ class UniformBlockRender : GLSurfaceView.Renderer {
     private var programId = 0
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 
-        //使用 feedback 特性.生成 programId
         val programData = zglCreateProgramIdFromAssets(
             appContext,
             "shader/uniformBlock.vert",
             "shader/uniformBlock.frag",
         )
-        // 设置 变换反馈 后, 必须要 调用 glLinkProgram
-        glTransformFeedbackVaryings(programId, feedbackVarArray, GL_INTERLEAVED_ATTRIBS)
-        glLinkProgram(programId)
-
-
         programId = programData.programId
         initUbo()
         initVaoVertex()
-        initFeedback()
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -77,41 +66,9 @@ class UniformBlockRender : GLSurfaceView.Renderer {
 
         glBindVertexArray(vaoIds[0])               //bind vao
         glBindBuffer(GL_ARRAY_BUFFER, vboIds[0])  // bind vbo
-
-        glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedbackObjIds[0]) //bind feedback
-        glBeginTransformFeedback(GL_POINTS)     //begin feedback
-
         glDrawArrays(GL_POINTS, 0, pointCount)
-
-        glEndTransformFeedback()                //end feedback
-        glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0)  //unbind feedback
-
-
         glBindBuffer(GL_ARRAY_BUFFER, 0) // unbind vbo
         glBindVertexArray(0)  // unbind vao
-
-    }
-
-
-    val vertexCoord = FloatArray(pointCount * 2) { Random.nextFloat() * 1000 }.toFloatBuffer()
-    private val feedbackBufferSize = 7 * 4
-    private fun initFeedback() {
-        glGenTransformFeedbacks(1, feedbackObjIds, 0)
-        glGenBuffers(1, feedbackBufferIds, 0)
-        glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, feedbackBufferIds[0])
-        glBufferData(
-            GL_TRANSFORM_FEEDBACK_BUFFER,
-            feedbackBufferSize,
-            FloatArray(feedbackBufferSize / 4).toFloatBuffer(),
-            GL_STATIC_DRAW
-        )
-        glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0)
-
-        glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedbackObjIds[0])
-        //将缓冲区对象绑定到索引缓冲区目标
-        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, feedbackBufferIds[0])
-        glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0)
-
     }
 
 
@@ -135,17 +92,18 @@ class UniformBlockRender : GLSurfaceView.Renderer {
 
 
     private fun initUbo() {
-        val uniformLocation = glGetUniformBlockIndex(programId, uniformBlockName)
-        //绑定 uniform 位置.. 后续 使用 ubo  绑定数据..
-        glUniformBlockBinding(programId, uniformLocation, 0)
-
-        Log.i("log_zc", "ParticleTransformFeedback-> initUbo: location:$uniformLocation")
         glGenBuffers(1, uboIds, 0)
         glBindBuffer(GL_UNIFORM_BUFFER, uboIds[0])
         glBufferData(GL_UNIFORM_BUFFER, uniformBlockData.limit() * 4, null, GL_STATIC_DRAW)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
         //把 uniform 缓冲对象绑定到同样的绑定点上,
         glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboIds[0], 0, uniformBlockData.limit() * 4)
+
+
+        val uniformLocation = glGetUniformBlockIndex(programId, uniformBlockName)
+        //绑定 uniform 位置.. 后续 使用 ubo  绑定数据..
+        glUniformBlockBinding(programId, uniformLocation, 0)
+
     }
 
     private fun updateUboData() {

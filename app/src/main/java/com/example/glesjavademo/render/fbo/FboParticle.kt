@@ -91,7 +91,6 @@ class FboParticle : GLSurfaceView.Renderer {
     override fun onDrawFrame(gl: GL10?) {
         if (fboId == 0) {
             initFbo(sw, sh)
-            textureRender.setTextureId(textureIds[0])
         }
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
         //渲染到 附着点上.. 附着点目前为纹理,

@@ -2,8 +2,6 @@ package com.example.glesjavademo.render
 
 import android.graphics.PointF
 import android.opengl.GLES10
-import android.opengl.GLES10.GL_ONE
-import android.opengl.GLES10.glBlendFunc
 import android.opengl.GLES20
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
@@ -32,13 +30,13 @@ class LinesRender() : GLSurfaceView.Renderer {
     private val pointsBuffer =
         ByteBuffer.allocate(lineCount * pointsCount * (2 * 4)).order(ByteOrder.nativeOrder())
 
-    private val bioArrays = IntBuffer.allocate(1)
+    private val vboBuffer = IntBuffer.allocate(1)
 
 
-    private val aboBuffer = IntBuffer.allocate(1)
+    private val vaoBuffer = IntBuffer.allocate(1)
 
-    private val aboId: Int get() = aboBuffer[0]
-    private val vboId get() = bioArrays[0]
+    private val vaoId: Int get() = vaoBuffer[0]
+    private val vboId get() = vboBuffer[0]
 
     private var programId = 0
 
@@ -48,7 +46,7 @@ class LinesRender() : GLSurfaceView.Renderer {
         Log.i("log_zc", "ParticleRender-> onSurfaceCreated: program: $programData")
         programId = programData.programId
 
-        GLES30.glGenBuffers(bioArrays.limit(), bioArrays)
+        GLES30.glGenBuffers(vboBuffer.limit(), vboBuffer)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, vboId)
         GLES30.glBufferData(
             GLES30.GL_ARRAY_BUFFER,
@@ -58,16 +56,13 @@ class LinesRender() : GLSurfaceView.Renderer {
         )
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
 
-        GLES30.glGenVertexArrays(1, aboBuffer)
-        GLES30.glBindVertexArray(aboId)
+        GLES30.glGenVertexArrays(1, vaoBuffer)
+        GLES30.glBindVertexArray(vaoId)
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, vboId)
 
         GLES30.glEnableVertexAttribArray(0);
-        GLES30.glEnableVertexAttribArray(1);
-
         GLES30.glVertexAttribPointer(0, 2, GLES30.GL_FLOAT, false, 2 * 4, 0)
-        GLES30.glVertexAttribPointer(1, 4, GLES30.GL_FLOAT, false, 2 * 4, 2 * 4)
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
 
@@ -91,7 +86,7 @@ class LinesRender() : GLSurfaceView.Renderer {
             updatePoints()
         }
 
-        GLES30.glBindVertexArray(aboId)
+        GLES30.glBindVertexArray(vaoId)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, vboId)
 
         val t2 = measureTimeMillis {

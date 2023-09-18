@@ -47,7 +47,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         it.setEGLContextClientVersion(2)
         //  it.setEGLConfigChooser(MyConfigChooser())
 
-        it.setRenderer(createRenderer(6))
+        it.setRenderer(createRenderer(8))
     }, modifier = Modifier.onSizeChanged {
         Log.i("log_zc", "MainActivity-> Greeting: size:$it")
     })
